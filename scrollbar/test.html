@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        #contain {
+            position: relative;
+            height: 80px;
+        }
+
+        #contain1 {
+            width: 100%;
+            height: 40px;
+            background: url("./scroll/player-icons-bg.png") repeat-x 0 0;
+            position: relative;
+            margin: 0 auto;
+            z-index: 10;
+        }
+
+        #scrollContainer {
+            width: 94%;
+            height: 8px;
+            background-color: #ffffff;
+            position: absolute;
+            top: 16px;
+            left: 60px;
+            border-radius: 21px;
+            z-index: 11;
+            overflow: hidden;
+        }
+
+        #scrollBar {
+            width: 101%;
+            height: 8px;
+            background-color: #41434f;
+            border-radius: 20px;
+        }
+
+        #scrollBar:hover {
+            cursor: pointer;
+        }
+
+        #pauseBtn {
+            width: 22px;
+            height: 22px;
+            display: inline-block;
+            background: url(./scroll/player-icons-sprite.png) -98px 33px;
+
+        }
+
+        #timeDataContain {
+            display: inline-block;
+            width: 20px;
+            vertical-align: top;
+        }
+
+        #timeData {
+            display: inline-block;
+            width: 20px;
+        }
+
+        #miaoPurs {
+            position: absolute;
+            top: 8px;
+            z-index: 12;
+            left: 15px;
+        }
+
+        #scrollBall {
+            width: 20px;
+            height: 22px;
+            display: inline-block;
+            background: url(./scroll/player-icons-sprite.png) 35px 30px;
+            position: absolute;
+            top: 10px;
+            z-index: 20;
+            left: 54px;
+        }
+
+        #scrollBall:hover {
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+
+<body>
+    <svg class="svg">
+        <line x1="2" y1="5" x2="90" y2="180" class="line" />
+    </svg>
+    <svg class="svg">
+        <polyline points="100,10 40,180 190,60 10,60 160,180" class="polygon" />
+    </svg>
+
+    <div id="contain">
+        <div id="contain1"></div>
+        <div id="scrollContainer">
+            <div id="scrollBar"></div>
+        </div>
+        <div id="scrollBall"></div>
+        <div id="miaoPurs">
+            <div id="pauseBtn"></div>
+            <div id="timeDataContain">
+                <span id="timeData">0</span>
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+    var pauseBtn = document.querySelector('#pauseBtn');
+    var timeData = document.querySelector('#timeData');
+    var scrollBar = document.getElementById("scrollBar");
+    var scrollBall = document.getElementById("scrollBall");
+    var scrollContainer = document.getElementById("scrollContainer");
+    var contain = document.getElementById("contain");
+    var widthNum = (scrollContainer.clientWidth || o.offsetWidth);
+    var totalTimer = 60
+    var miaoNun = widthNum / totalTimer;
+    var speed = widthNum / (totalTimer * 1000 / 16)
+    var initX = -widthNum;
+    var currentInitX = -widthNum;
+    var pauseStop = true;
+    var timerNum = null;
+    var reserveStart = false;
+    var timer = null;
+
+    //暂停播放
+    var timeOutFlag = null;
+
+    pauseBtn.onclick = function (e) {
+        clickFn()
+        e.stopPropagation()
+    }
+    function clickFn() {
+        timerNum = parseInt(timeData.innerHTML)
+        if (totalTimer >= timerNum && pauseStop) {
+            timerUpdata()
+            pauseStop = false
+        } else if (reserveStart) {
+            moveX(initX)
+            timerUpdata()
+            reserveStart = false
+        } else {
+            clearInterval(timer)
+            pauseStop = true
+            pauseBackImg('stop')
+        }
+    }
+    //移动函数赋值
+    moveX(currentInitX)
+    function moveX(x) {
+        x = x - 6
+        scrollBar.style.transform = "translateX(" + x + "px)";
+        scrollBall.style.transform = "translateX(" + (widthNum + x) + "px)";
+    }
+    //更新当前移动距离
+    function timerUpdata() {
+        pauseBackImg('start')
+        if (timer) {
+            clearInterval(timer)
+        }
+        timer = setInterval(() => {
+            currentInitX += speed
+            moveX(currentInitX)
+            var timeCurrentWidthMove = widthNum - Math.abs(currentInitX)
+            var currentMiao = ((totalTimer * timeCurrentWidthMove) / widthNum).toFixed(0);
+            //当前为整数才执行，并且不相同
+            computedHtml(currentMiao)
+            if (currentInitX >= 0) {
+                pauseBackImg('stop')
+                reserveStart = true
+                clearInterval(timer)
+                currentInitX = -widthNum
+            }
+        }, 16)
+    }
+    //暂停 播放按钮切换
+    function pauseBackImg(state) {
+        var backPx = state === 'stop' ? -98 : -55
+        pauseBtn.style.background = "url(./scroll/player-icons-sprite.png) " + backPx + "px 33px";
+    }
+    //优化当前计算的秒数相等则不执行操作dom赋值
+    var beforeNum = null;
+    function computedHtml(currNum) {
+        if (beforeNum != currNum && currNum >= 0) {
+            timeData.innerHTML = currNum;
+            beforeNum = currNum
+        }
+    }
+    //鼠标移动判断
+    scrollContainer.onmousemove = function (e) {
+        if (flag) {
+            throttle(transformFn)(e)
+        }
+    }
+    var flag = false
+    var mouseDownX, initY, flag = false;
+    scrollBall.onmousedown = function (e) {
+        mouseDownX = e.pageX
+        console.log(mouseDownX)
+        if (true) {
+
+            throttle(transformFn)(e)
+            clearInterval(timer)
+            flag = true
+        } else {
+            clearTimeout(timeOut)
+        }
+
+    }
+    //初始化当前位置判断
+
+    var mouseUpX = null;
+    scrollBall.onmouseup = function (e) {
+        console.log(mouseUpX, mouseDownX)
+        // if (mouseUpX != mouseDownX) {
+        mouseUpX = e.pageX
+        flag = false
+        currentInitX = dragCurrentWidth
+        throttle(transformFn)(e)
+        timerUpdata()
+        // }
+        e.stopPropagation()
+    }
+    scrollContainer.onmouseup = function (e) {
+        flag = false
+    }
+    scrollContainer.onmousedown = function (e) {
+        flag = false
+        // clearInterval(timer)
+    }
+    contain.onmouseup = function (e) {
+        if (flag) {
+            currentInitX = dragCurrentWidth
+        }
+        timerUpdata();
+        flag = false
+    }
+    document.body.onmouseup = function (e) {
+        if (flag) {
+            currentInitX = dragCurrentWidth
+            timerUpdata();
+            flag = false
+            e.stopPropagation()
+        }
+
+    }
+    document.body.onmousemove = function (e) {
+        if (flag) {
+            throttle(transformFn)(e)
+        }
+    }
+    // document.body.onmouseleave = function (e) {
+    //     flag = false
+    //     clearInterval(timer)
+    //     pauseBackImg('stop')
+
+    // }
+    document.ondragstart = function (ev) {
+        ev.preventDefault();
+    };
+    document.ondragend = function (ev) {
+        ev.preventDefault();
+    };
+    //如果当前停顿之后再去拖动,记录当前拖动的距离
+    var dragCurrentWidth = null;
+    function transformFn(e) {
+        var mouseMoveX = e.pageX;
+        dragCurrentWidth = parseInt(mouseMoveX) - parseInt(mouseDownX) + parseInt(currentInitX);
+        var dragCurrentWidthMovePX = widthNum - Math.abs(dragCurrentWidth);
+        if (dragCurrentWidth < 0 && dragCurrentWidthMovePX >= 0) {
+            moveX(dragCurrentWidth)
+            var miaoCurrentNum = ((totalTimer * dragCurrentWidthMovePX) / widthNum).toFixed(0);
+            if (miaoCurrentNum >= 0) {
+                timeData.innerHTML = miaoCurrentNum;
+            } else {
+                timeData.innerHTML = 0;
+            }
+
+        }
+
+    }
+    //阻止事件
+    function pauseEvent(e) {
+        if (e.stopPropagation) e.stopPropagation();
+        if (e.preventDefault) e.preventDefault();
+        e.cancelBubble = true;
+        e.returnValue = false;
+        return false;
+    }
+    //节流
+    function throttle(fn) {
+        var timerFlag = null;
+        return function (e) {
+            if (!timerFlag) {
+                timerFlag = setTimeout(function () {
+                    fn(e);
+                    timerFlag = null
+                }, 200)
+            }
+        }
+    }
+</script>
+
+</html>
